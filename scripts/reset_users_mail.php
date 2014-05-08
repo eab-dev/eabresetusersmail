@@ -10,64 +10,66 @@ and you can set the email in  extension/eabresetusersmail/settings/resetusersmai
 
 $cli = eZCLI::instance(); // provide interface with CLI
 
-$db = eZDB::instance();
-$db->begin();
-$ResetUsersMailIni = eZINI::instance( 'resetusersmail.ini' );
-$ResetMailAddress = $ResetUsersMailIni->variable( 'Info', 'ResetMailAddress' );
-
-if ( !$isQuiet )
-    $cli->output( "Reset users email to ". $ResetMailAddress );
-
-$dataTypeString = 'ezuser' ;
-$ContainUserAccountClasseIDs = eZContentClass::fetchIDListContainingDatatype ( $dataTypeString );
-
-foreach( $ContainUserAccountClasseIDs as $ContainUserAccountClasseID )
+$ini = eZINI::instance( 'resetusersmail.ini' );
+$resetMailAddress = $ini->variable( 'Info', 'ResetMailAddress' );
+if ( $resetMailAddress )
 {
-	$Attributes = eZContentClass::fetchAttributes ( $ContainUserAccountClasseID, true, eZContentClass::VERSION_STATUS_DEFINED );
-	$ezuser_attributes = array();
-	
-	foreach( $Attributes as $Attribute )
+	if ( !$isQuiet )
+	    $cli->output( "Reset users email to ". $resetMailAddress );
+
+	$dataTypeString = 'ezuser' ;
+	$ContainUserAccountClasseIDs = eZContentClass::fetchIDListContainingDatatype ( $dataTypeString );
+
+	$db = eZDB::instance();
+	$db->begin();
+	foreach( $ContainUserAccountClasseIDs as $ContainUserAccountClasseID )
 	{
-		if( $Attribute->attribute( 'data_type_string' ) == 'ezuser' )
-		{
-			$AttributeName = $Attribute->attribute( 'name' ) ;
-			$AttributeIdentifier = $Attribute->attribute( 'identifier' ) ;
-			
-			$ezuser_attributes[] = $AttributeIdentifier;		
-		}	
-	}	
-	
-	$objects = eZContentObject::fetchSameClassList( $ContainUserAccountClasseID , true , false ,false );
-	foreach ( $objects as $object )
-	{
-		$UserDataMap = $object->attribute('data_map');
-	
-		foreach ( $ezuser_attributes as $ezuser_attribute )
-		{				
-			$UserDataMap = $object->attribute('data_map');
-						
-			$UserContent = $UserDataMap[$ezuser_attribute]->attribute( 'content' );
-			$UserEmail = $UserContent->attribute( 'email' );
-						
-			$UserContent->setAttribute( 'email', $ResetMailAddress );
-			$UserContent->store();	
-			
-			$objectID = $object->attribute('id');
-			$objectName = $object->attribute('name');
-			$oldEmail = $UserEmail;
-			$newEmail = $ResetMailAddress;
-			$logmessage = "The user messages: user_id is ". $objectID ."; user_name is ". $objectName ."; old email is ". $oldEmail ."; new email is ". $newEmail ;
-		}
+		$Attributes = eZContentClass::fetchAttributes ( $ContainUserAccountClasseID, true, eZContentClass::VERSION_STATUS_DEFINED );
+		$ezuser_attributes = array();
 		
-		eZLog::write ( $logmessage, 'reset_user_email.log', 'var/log');	
-	}		
-//print_r("\n ".$UserEmail); 
+		foreach( $Attributes as $Attribute )
+		{
+			if( $Attribute->attribute( 'data_type_string' ) == 'ezuser' )
+			{
+				$AttributeName = $Attribute->attribute( 'name' ) ;
+				$AttributeIdentifier = $Attribute->attribute( 'identifier' ) ;
+				
+				$ezuser_attributes[] = $AttributeIdentifier;		
+			}	
+		}	
+		
+		$objects = eZContentObject::fetchSameClassList( $ContainUserAccountClasseID , true , false ,false );
+		foreach ( $objects as $object )
+		{
+			$UserDataMap = $object->attribute('data_map');
+		
+			foreach ( $ezuser_attributes as $ezuser_attribute )
+			{				
+				$UserDataMap = $object->attribute('data_map');
+							
+				$UserContent = $UserDataMap[$ezuser_attribute]->attribute( 'content' );
+				$oldEmail = $UserContent->attribute( 'email' );
+							
+				$UserContent->setAttribute( 'email', $resetMailAddress );
+				$UserContent->store();	
+				
+				$userID = $object->attribute('id');
+				$objectName = $object->attribute('name');
+				$logmessage .= "User ID: " . $userID . ". \"" . $objectName . "\"; old email was " . $oldEmail . "; new email is ". $resetMailAddress . "\n";
+			}
+			
+			eZLog::write ( $logmessage, 'reset_user_email.log', 'var/log');	
+		}		
+	//print_r("\n ".$UserEmail); 
+	}
+	$db->commit();
+
+	if ( !$isQuiet )
+		$cli->output( "Done" );
 }
-
-$db->commit();
-if ( !$isQuiet )
-    $cli->output( "Done" );
-
-//exit;
+else
+{
+	$cli->output( "Can't find ResetMailAddress in resetusersmail.ini\nDid you activate the extension?" );	
+}
 
 ?>
