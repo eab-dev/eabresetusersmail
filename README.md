@@ -28,23 +28,23 @@ Installation
 
 1. Copy the `eabresetusersmail` folder to the `extension` folder or use git:
 
-    cd extension
-    git clone https://github.com/eab-dev/eabresetusersmail.git
+        cd extension
+        git clone https://github.com/eab-dev/eabresetusersmail.git
 
 2. Edit `settings/override/site.ini.append.php`
 
 3. Under `[ExtensionSettings]` add:
 
-    ActiveExtensions[]=eabresetusersmail
+        ActiveExtensions[]=eabresetusersmail
 
 5. Clear the cache:
 
-    bin/php/ezcache.php --clear-all
+        bin/php/ezcache.php --clear-all
 
 Usage
 ------
 
-1. If you want to change the default email address:
+1. To change the default email address:
 
 * Copy `extension/settings/override/resetusersmail.ini.append.php`
 to `settings/override/resetusersmail.ini.append.php` and edit it.
@@ -53,8 +53,8 @@ to `settings/override/resetusersmail.ini.append.php` and edit it.
 
 * After saving `extension/settings/override/resetusersmail.ini.append.php` clear the cache:
 
-    bin/php/ezcache.php --clear-all
+            bin/php/ezcache.php --clear-all
 
 2. To reset all users email addresses to the same one, run:
 
-php bin/php/ezexec.php extension/eabresetusersmail/scripts/reset_users_mail.php
+        php bin/php/ezexec.php extension/eabresetusersmail/scripts/reset_users_mail.php
