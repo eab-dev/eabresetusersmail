@@ -7,6 +7,8 @@ This extension provides a command line script which will reset all user emails t
 This is useful when copying a live website to a test environment and you don't want the
 users to receive notification emails etc from the test system.
 
+It also provides a command line script to reset a user's password.
+
 Disclaimer
 ----------
 This extension is provided as is, completely free of use and charge.
@@ -58,3 +60,7 @@ to `settings/override/resetusersmail.ini.append.php` and edit it.
 2. To reset all users email addresses to the same one, run:
 
         php bin/php/ezexec.php extension/eabresetusersmail/scripts/reset_users_mail.php
+
+3. To reset a user's password, run:
+
+        php extension/eabresetusersmail/scripts/reset_password.php --user=username --password=newpassword
