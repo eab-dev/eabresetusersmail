@@ -38,8 +38,17 @@ $minPasswordLength = $eZIni->variable( 'UserSettings', 'MinPasswordLength' );
 if( strlen( $newPassword ) >= $minPasswordLength )
 {
     // Change the user's password
-    if ( eZOperationHandler::operationIsAvailable( 'user_password' ) )
+    if ( method_exists( 'eZOperationHandler', 'operationIsAvailable' ) && eZOperationHandler::operationIsAvailable( 'user_password' ) )
         eZOperationHandler::execute( 'user', 'password', array( 'user_id' => $userID, 'new_password' => $newPassword ) );
+    elseif ( !method_exists( 'eZOperationHandler', 'operationIsAvailable' ) ) {
+        // Really old versions of eZ Publish don't have eZOperationHandler::operationIsAvailable or eZUserOperationCollection::password
+        $type = $user->attribute( "password_hash_type" );
+        $hash = $user->attribute( "password_hash" );
+        $site = $user->site();
+        $newHash = $user->createHash( $userName, $newPassword, $site, $type );
+        $user->setAttribute( "password_hash", $newHash );
+        $user->store();
+    }
     else
         eZUserOperationCollection::password( $userID, $newPassword );
 }
